@@ -1,6 +1,8 @@
 
 #include "firmata.h"
 
+#include <unistd.h>
+
 int             main()
 {
   t_firmata     *firmata;

@@ -1,5 +1,7 @@
 #include "servo.h"
 
+#include <unistd.h>
+
 int		main()
 {
   t_firmata	*firmata;

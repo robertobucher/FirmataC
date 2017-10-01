@@ -49,6 +49,7 @@ int		firmata_pull(t_firmata *firmata)
   } else if (r < 0) {
     return (r);
   }
+  return 0;
 }
 
 void		firmata_parse(t_firmata *firmata, const uint8_t *buf, int len)
