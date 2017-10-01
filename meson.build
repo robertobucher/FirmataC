@@ -21,5 +21,10 @@ if meson.is_subproject()
     include_directories : includes,
     link_with : firmatac)
 else
-  message('Meson only supports building Firmata as a library!')
+  executable('led_blink', 'examples/ledBlink.c',
+              include_directories: includes,
+              link_with: firmatac)
+  executable('servo_test', 'examples/servoTest.c',
+              include_directories: includes,
+              link_with: firmatac)
 endif
