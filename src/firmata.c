@@ -23,12 +23,18 @@ t_firmata	*firmata_new(char *name)
       perror("firmata_new::Failed malloc");
       return (NULL);
     }
-  serial_open(res->serial, name);
+  int ret = serial_open(res->serial, name);
+  if(ret == -1) {
+    goto fail;
+  }
   firmata_initPins(res);
   serial_setBaud(res->serial, 57600);
   firmata_askFirmware(res);
   printf("Device opened at: %s\n", name);
   return (res);
+fail:
+  free(res);
+  return 0;
 }
 
 int		firmata_pull(t_firmata *firmata)
