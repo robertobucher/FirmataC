@@ -6,6 +6,12 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 
+#ifdef FIRMATAC_DEBUG
+#define printf(...) printf(__VA_ARGS__)
+#else
+#define printf(...)
+#endif
+
 t_firmata	*firmata_new(char *name)
 {
   t_firmata	*res;
