@@ -185,6 +185,9 @@ int		serial_read(t_serial *serial, void *ptr, int count)
   if (count <= 0)
     return (0);
   n = read(serial->port_fd, ptr, count);
+  if(n == -EADDRNOTAVAIL) {
+    return -1;
+  }
   if (n < 0 && (errno == EAGAIN || errno == EINTR))
     return (0);
   if (n == 0 && ioctl(serial->port_fd, TIOCMGET, &bits) < 0)

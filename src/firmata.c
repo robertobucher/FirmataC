@@ -6,6 +6,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 
+//#define FIRMATAC_DEBUG
 #ifdef FIRMATAC_DEBUG
 #define printf(...) printf(__VA_ARGS__)
 #else
@@ -46,13 +47,13 @@ fail:
 int		firmata_pull(t_firmata *firmata)
 {
   uint8_t	buff[FIRMATA_MSG_LEN];
-  int		r;
+  int		r = 0;
 
-  r = serial_waitInput(firmata->serial, 40);
+  r = serial_waitInput(firmata->serial, 1);
   if (r > 0) {
     r = serial_read(firmata->serial, buff, sizeof(buff));
     if (r < 0) {
-      return (0);
+      return (r);
     }
     if (r > 0) {
       firmata_parse(firmata, buff, r);
