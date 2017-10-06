@@ -15,6 +15,13 @@
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
+//#define FIRMATAC_DEBUG
+#ifdef FIRMATAC_DEBUG
+#define perror(...) perror(__VA_ARGS__)
+#else
+#define perror(...)
+#endif
+
 t_serial	*serial_new()
 {
   t_serial	*res;
