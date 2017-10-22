@@ -18,7 +18,7 @@ t_firmata	*firmata_new(char *name)
   t_firmata	*res;
 
   printf("Opening device at: %s\n", name);
-  res = malloc(sizeof(t_firmata));
+  res = calloc(1, sizeof(t_firmata));
   if (!res)
     {
       perror("firmata_new::Failed malloc");
@@ -40,6 +40,8 @@ t_firmata	*firmata_new(char *name)
   printf("Device opened at: %s\n", name);
   return (res);
 fail:
+  if(res->serial)
+    free(res->serial);
   free(res);
   return 0;
 }
