@@ -74,7 +74,9 @@ int		serial_open(t_serial *serial, char *name)
       perror("Unable to query serial port signals");
       return (-1);
     }
-  bits &= ~(TIOCM_DTR | TIOCM_RTS);
+  // bits &= ~(TIOCM_DTR | TIOCM_RTS);
+  bits &= ~(TIOCM_RTS);
+  bits &= (TIOCM_DTR);
   if (ioctl(serial->port_fd, TIOCMSET, &bits) < 0)
     {
       close(serial->port_fd);
