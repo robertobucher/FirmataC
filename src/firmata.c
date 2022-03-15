@@ -6,14 +6,18 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 
-//#define FIRMATAC_DEBUG
+#define FIRMATAC_DEBUG // todo - comment this out
 #ifdef FIRMATAC_DEBUG
 #define printf(...) printf(__VA_ARGS__)
 #else
 #define printf(...)
 #endif
 
-t_firmata	*firmata_new(char *name)
+t_firmata	*firmata_new(char *name) {
+    firmata_new_with_baud(name, 57600);
+}
+
+t_firmata	*firmata_new_with_baud(char *name, int baud)
 {
   t_firmata	*res;
 
@@ -35,7 +39,8 @@ t_firmata	*firmata_new(char *name)
     goto fail;
   }
   firmata_initPins(res);
-  serial_setBaud(res->serial, 57600);
+  firmata_initCustomValues(res);
+  serial_setBaud(res->serial, baud);
   firmata_askFirmware(res);
   printf("Device opened at: %s\n", name);
   return (res);
@@ -133,6 +138,14 @@ void		firmata_endParse(t_firmata *firmata)
     return;
   }
   if (firmata->parse_buff[0] == FIRMATA_START_SYSEX && firmata->parse_buff[firmata->parse_count - 1] == FIRMATA_END_SYSEX) {
+
+    printf("firmata_CUSTOM::parse_buff[1]: %02X\n", firmata->parse_buff[1]);
+    int i;
+    for (i = 0; i < firmata->parse_count; i++) {
+      printf("%02X ", firmata->parse_buff[i]);
+    }
+    printf("\n");
+
     if (firmata->parse_buff[1] == FIRMATA_REPORT_FIRMWARE) {
       int len=0;
       int i;
@@ -146,24 +159,24 @@ void		firmata_endParse(t_firmata *firmata)
       firmata->firmware[len++] = firmata->parse_buff[3] + '0';
       firmata->firmware[len++] = 0;
       printf("Name :: %s\n", firmata->firmware);
-      // query the board's capabilities only after hearing the                              
-      // REPORT_FIRMWARE message.  For boards that reset when                               
-      // the port open (eg, Arduino with reset=DTR), they are                               
-      // not ready to communicate for some time, so the only                                
-      // way to reliably query their capabilities is to wait                                
-      // until the REPORT_FIRMWARE message is heard.                                        
+      // query the board's capabilities only after hearing the
+      // REPORT_FIRMWARE message.  For boards that reset when
+      // the port open (eg, Arduino with reset=DTR), they are
+      // not ready to communicate for some time, so the only
+      // way to reliably query their capabilities is to wait
+      // until the REPORT_FIRMWARE message is heard.
       uint8_t buf[80];
       len=0;
       buf[len++] = FIRMATA_START_SYSEX;
-      buf[len++] = FIRMATA_ANALOG_MAPPING_QUERY; // read analog to pin # info                       
+      buf[len++] = FIRMATA_ANALOG_MAPPING_QUERY; // read analog to pin # info
       buf[len++] = FIRMATA_END_SYSEX;
       buf[len++] = FIRMATA_START_SYSEX;
-      buf[len++] = FIRMATA_CAPABILITY_QUERY; // read capabilities                                   
+      buf[len++] = FIRMATA_CAPABILITY_QUERY; // read capabilities
       buf[len++] = FIRMATA_END_SYSEX;
       for (i = 0; i < 16; i++) {
-	buf[len++] = 0xC0 | i;  // report analog                                      
+	buf[len++] = 0xC0 | i;  // report analog
 	buf[len++] = 1;
-	buf[len++] = 0xD0 | i;  // report digital                                     
+	buf[len++] = 0xD0 | i;  // report digital
 	buf[len++] = 1;
       }
       firmata->isReady = 1;
@@ -180,12 +193,12 @@ void		firmata_endParse(t_firmata *firmata)
 	  continue;
 	}
 	if (n == 0) {
-	  // first byte is supported mode                                       
+	  // first byte is supported mode
 	  firmata->pins[pin].supported_modes |= (1 << firmata->parse_buff[i]);
 	}
 	n = n ^ 1;
       }
-      // send a state query for for every pin with any modes                                
+      // send a state query for for every pin with any modes
       for (pin=0; pin < 128; pin++) {
 	uint8_t buf[512];
 	int len=0;
@@ -200,7 +213,7 @@ void		firmata_endParse(t_firmata *firmata)
     } else if (firmata->parse_buff[1] == FIRMATA_ANALOG_MAPPING_RESPONSE) {
       int pin = 0;
       int i;
-      for (i = 2; i< firmata->parse_count - 1; i++) {
+      for (i = 2; i< firmata->parse_count - 1; i++  ) {
 	firmata->pins[pin].analog_channel = firmata->parse_buff[i];
 	pin++;
       }
@@ -211,7 +224,12 @@ void		firmata_endParse(t_firmata *firmata)
       firmata->pins[pin].value = firmata->parse_buff[4];
       if (firmata->parse_count > 6) firmata->pins[pin].value |= (firmata->parse_buff[5] << 7);
       if (firmata->parse_count > 7) firmata->pins[pin].value |= (firmata->parse_buff[6] << 14);
+    } else if (firmata->parse_buff[1] == FIRMATA_VL53L0X_GET_DISTANCE) {
+      int msb = firmata->parse_buff[2];
+      int lsb = firmata->parse_buff[3];
+      firmata->custom_value[GET_CUSTOM_VALUE(FIRMATA_VL53L0X_GET_DISTANCE)] = (msb << 7) | lsb;
     }
+
     return;
   }
 
@@ -233,13 +251,23 @@ void		firmata_initPins(t_firmata *firmata)
   }
 }
 
+
+void firmata_initCustomValues(t_firmata *firmata)
+{
+  int i;
+
+  for (i = 0; i < 7; i++) {
+    firmata->custom_value[i] = 0;
+  }
+}
+
 int		firmata_askFirmware(t_firmata *firmata)
 {
   uint8_t	buf[3];
   int		res;
 
   buf[0] = FIRMATA_START_SYSEX;
-  buf[1] = FIRMATA_REPORT_FIRMWARE; // read firmata name & version                     
+  buf[1] = FIRMATA_REPORT_FIRMWARE; // read firmata name & version
   buf[2] = FIRMATA_END_SYSEX;
   res = serial_write(firmata->serial, buf, 3);
   return (res);
