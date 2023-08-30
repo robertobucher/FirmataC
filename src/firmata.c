@@ -6,7 +6,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 
-//#define FIRMATAC_DEBUG
+#define FIRMATAC_DEBUG
 #ifdef FIRMATAC_DEBUG
 #define printf(...) printf(__VA_ARGS__)
 #else
