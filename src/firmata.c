@@ -6,7 +6,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 
-#define FIRMATAC_DEBUG
+/* #define FIRMATAC_DEBUG */
 #ifdef FIRMATAC_DEBUG
 #define printf(...) printf(__VA_ARGS__)
 #else
@@ -282,7 +282,7 @@ int		firmata_pinMode(t_firmata *firmata, int pin, int mode)
   buff[0] = FIRMATA_SET_PIN_MODE;
   buff[1] = pin;
   buff[2] = mode;
-  printf("Setting pinMode at: %i with value: %i\n", pin, mode);
+  /* printf("Setting pinMode at: %i with value: %i\n", pin, mode); */
   res = serial_write(firmata->serial, buff, 3);
   return (res);
 }
