@@ -15,7 +15,7 @@
 #include <sys/ioctl.h>
 #include <linux/serial.h>
 
-//#define FIRMATAC_DEBUG
+/* #define FIRMATAC_DEBUG */
 #ifdef FIRMATAC_DEBUG
 #define perror(...) perror(__VA_ARGS__)
 #else

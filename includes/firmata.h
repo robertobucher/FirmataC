@@ -67,6 +67,7 @@ typedef struct		s_firmata
   t_pin			pins[128];
   int			parse_command_len;
   int			parse_count;
+  int                  encoder_counter;
   uint8_t		parse_buff[FIRMATA_MSG_LEN];
   int			isReady;
   char			firmware[140];

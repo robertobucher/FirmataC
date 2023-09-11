@@ -1,7 +1,7 @@
 
 #include	"serial.h"
 #include	"firmata.h"
-
+#include  "encoder.h"
 #include	<string.h>
 #include	<stdlib.h>
 #include	<stdio.h>
@@ -88,6 +88,7 @@ void		firmata_parse(t_firmata *firmata, const uint8_t *buf, int len)
       firmata->parse_command_len = 2;
       firmata->parse_count = 0;
     } else if (*p == FIRMATA_START_SYSEX) {
+      printf("Len: %d\n", len);
       firmata->parse_count = 0;
       firmata->parse_command_len = sizeof(firmata->parse_buff);
     } else if (*p == FIRMATA_END_SYSEX) {
@@ -181,6 +182,8 @@ void		firmata_endParse(t_firmata *firmata)
       }
       firmata->isReady = 1;
       serial_write(firmata->serial, buf, len);
+    } else if (firmata->parse_buff[1] == FIRMATA_ENCODER  && firmata->parse_count==8) {
+      getCounter(firmata);
     } else if (firmata->parse_buff[1] == FIRMATA_CAPABILITY_RESPONSE) {
       int pin, i, n;
       for (pin=0; pin < 128; pin++) {
